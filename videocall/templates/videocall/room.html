@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Videollamada</title>
+  <style>
+    video {
+      width: 300px;
+      border: 1px solid black;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Videollamada en sala: {{ room_name }}</h2>
+
+  <!-- Video local y remoto -->
+  <video id="localVideo" autoplay playsinline muted></video>
+  <video id="remoteVideo" autoplay playsinline></video>
+
+  <script>
+    const roomName = "{{ room_name }}";
+
+    // Detectar protocolo (http -> ws, https -> wss)
+    let protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const ws = new WebSocket(protocol + window.location.host + "/ws/call/" + roomName + "/");
+
+    let localStream;
+    let pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
+
+    const localVideo = document.getElementById("localVideo");
+    const remoteVideo = document.getElementById("remoteVideo");
+
+    let isCaller = false;
+    let answerApplied = false;
+
+    // Obtener cámara y micrófono
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        localVideo.srcObject = stream;
+        localStream = stream;
+
+        console.log("Cámara/micrófono OK, agregando tracks...");
+        stream.getTracks().forEach(track => {
+          console.log("Agregando track:", track.kind);
+          pc.addTrack(track, stream);
+        });
+
+        // Compatibilidad extra
+        if (pc.addStream) {
+          console.log("Agregando stream completo con addStream (compatibilidad).");
+          pc.addStream(stream);
+        }
+      })
+      .catch(err => console.error("❌ Error al acceder a cámara/micrófono:", err));
+
+    // Mostrar stream remoto
+    pc.ontrack = event => {
+      console.log("✅ Stream remoto recibido (ontrack):", event.streams);
+      if (event.streams && event.streams[0]) {
+        remoteVideo.srcObject = event.streams[0];
+      } else {
+        const inboundStream = new MediaStream();
+        inboundStream.addTrack(event.track);
+        remoteVideo.srcObject = inboundStream;
+      }
+    };
+
+    // Compatibilidad con navegadores antiguos
+    pc.onaddstream = event => {
+      console.log("✅ Stream remoto recibido (onaddstream):", event.stream);
+      remoteVideo.srcObject = event.stream;
+    };
+
+    // Estado de ICE
+    pc.oniceconnectionstatechange = () => {
+      console.log("📡 ICE state:", pc.iceConnectionState);
+    };
+
+    // Enviar ICE candidates al servidor
+    pc.onicecandidate = event => {
+      if (event.candidate) {
+        console.log("➡️ Enviando ICE:", event.candidate);
+        ws.send(JSON.stringify({ "ice": event.candidate }));
+      }
+    };
+
+    // Función para crear la oferta
+    async function makeCall() {
+      const offer = await pc.createOffer();
+      console.log("📨 Creando y enviando offer:", offer);
+      await pc.setLocalDescription(offer);
+      ws.send(JSON.stringify({ "offer": offer }));
+    }
+
+    // Manejo de mensajes desde WebSocket
+    ws.onmessage = async (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.joined && !isCaller) {
+        isCaller = true;
+        console.log("🟢 Soy el que llama (caller)");
+        makeCall();
+      }
+
+      if (data.offer) {
+        console.log("📩 Recibí una offer:", data.offer);
+        if (pc.signalingState === "stable") {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+          const answer = await pc.createAnswer();
+          console.log("📨 Enviando answer:", answer);
+          await pc.setLocalDescription(answer);
+          ws.send(JSON.stringify({ "answer": answer }));
+        } else {
+          console.warn("⚠️ Ignorando offer porque el estado es:", pc.signalingState);
+        }
+      } else if (data.answer) {
+        console.log("📩 Recibí una answer:", data.answer);
+        if (!answerApplied && pc.signalingState === "have-local-offer") {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          answerApplied = true;
+          console.log("✅ Answer aplicada correctamente");
+        } else {
+          console.warn("⚠️ Ignorando answer extra porque el estado es:", pc.signalingState);
+        }
+      } else if (data.ice) {
+        console.log("⬅️ Recibí ICE:", data.ice);
+        try {
+          await pc.addIceCandidate(new RTCIceCandidate(data.ice));
+        } catch (e) {
+          console.error("❌ Error agregando ICE:", e);
+        }
+      }
+    };
+  </script>
+</body>
+</html>
+
+
+
+

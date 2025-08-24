@@ -1,0 +1,2 @@
+daphne -p 8000 project.asgi:application
+-- solo entran al puerto 8000 en la web
