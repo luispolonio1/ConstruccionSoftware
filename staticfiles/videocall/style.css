@@ -1,0 +1,372 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #ffffff;
+        }
+
+        .header {
+            background: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .room-title {
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .room-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        .video-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+            gap: 0;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-wrapper {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .video-wrapper:hover {
+            border-color: rgba(255, 255, 255, 0.16);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .video-wrapper.main {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .video-wrapper.pip {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            width: 240px;
+            height: 180px;
+            z-index: 10;
+            cursor: move;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        }
+
+        .video-wrapper.pip:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.8);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000000;
+            border-radius: inherit;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(0, 0, 0, 0.2) 0%,
+                transparent 30%,
+                transparent 70%,
+                rgba(0, 0, 0, 0.4) 100%
+            );
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        .video-label {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mic-indicator {
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            animation: micPulse 1.5s infinite;
+        }
+
+        .mic-indicator.muted {
+            background: rgba(255, 255, 255, 0.4);
+            animation: none;
+        }
+
+        @keyframes micPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.3); opacity: 0.5; }
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 0.75rem 1.5rem;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .control-btn {
+            width: 48px;
+            height: 48px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+        }
+
+        .control-btn.end {
+            background: rgba(20, 20, 20, 0.8);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .control-btn.end:hover {
+            background: rgba(40, 40, 40, 0.9);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .quality-bars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .quality-bar {
+            width: 2px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 1px;
+        }
+
+        .quality-bar.active {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem 1.5rem;
+            }
+            
+            .room-title {
+                font-size: 1.2rem;
+            }
+            
+            .video-container {
+                padding: 1rem;
+            }
+            
+            .video-wrapper.pip {
+                width: 120px;
+                height: 90px;
+                bottom: 6rem;
+                right: 1rem;
+            }
+            
+            .controls {
+                bottom: 1rem;
+                padding: 0.5rem 1rem;
+                gap: 0.25rem;
+            }
+            
+            .control-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Animaciones de entrada */
+        .video-wrapper {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .controls {
+            animation: slideUp 1s ease-out 0.2s both;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Efecto sutil para el video activo */
+        .video-wrapper.speaking {
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Placeholder para video sin señal */
+        .video-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111111;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .video-placeholder::before {
+            content: '📷';
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+            opacity: 0.3;
+        }
+
+        /* Efectos de transición suaves */
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .video-wrapper, .control-btn, .status-dot {
+            will-change: transform, opacity;
+        }

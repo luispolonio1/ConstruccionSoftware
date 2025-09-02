@@ -18,12 +18,20 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 "type": "signal_message",
-                "message": {"joined": True},
+                "message": {"joined": True,"Mensaje":f"Se a unido a la llamada {self.channel_name}"},
                 "sender_channel": self.channel_name
             }
         )
 
     async def disconnect(self, close_code):
+        await self.channel_layer.group_send(
+        self.room_group_name,
+        {
+                "type": "signal_message",
+                "message": {"left": True,"Informacion":f"{self.channel_name} ha salido de la llamada"},
+                "sender_channel": self.channel_name
+        }
+             )
         # salir del grupo
         await self.channel_layer.group_discard(
             self.room_group_name,
