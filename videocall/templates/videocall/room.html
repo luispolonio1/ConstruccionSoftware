@@ -6,6 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Videollamada - {{ room_name }}</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <script src="{% static 'holistic/holistic.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -240,6 +245,11 @@
           <button id="videoBtn" class="btn-primary w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors" title="Activar/Desactivar cámara" aria-label="Activar cámara">
             <i class="material-icons">videocam</i>
           </button>
+
+          <!-- Botón de procesamiento -->
+          <button id="toggleProcessing" class="btn-primary w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors" title="Iniciar procesamiento" aria-label="Iniciar procesamiento" onclick="toggleProcessing()" disabled style="background-color: #4CAF50">
+            <i id="icon_translate" class="material-icons">translate</i>
+          </button>
           
           <!-- Botón de finalizar llamada -->
           <button id="endBtn" class="btn-accent w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors" title="Finalizar llamada" aria-label="Finalizar llamada">
@@ -256,5 +266,6 @@
   <!-- Scripts -->
   <script src="{% static 'videocall/llamadas.js' %}" defer></script>
   <script src="{% static 'videocall/tools.js' %}" defer></script>
+  <script src="{% static 'videocall/predictions.js' %}" defer></script>
 </body>
 </html>

@@ -1,3 +1,5 @@
+const toggleBtn = document.getElementById("toggleProcessing");
+
 const roomName = document.getElementById("room-data").dataset.room;
 const ws = new WebSocket(
   (window.location.protocol === "https:" ? "wss://" : "ws://") +
@@ -20,8 +22,13 @@ navigator.mediaDevices.getUserMedia({ video: true, audio: true })
   .then(stream => {
     localVideo.srcObject = stream;
     localStream = stream;
+
     stream.getTracks().forEach(track => {
       pc.addTrack(track, stream);
+    });
+
+    initializeAI().then(() => {
+      toggleBtn.disabled = false;
     });
   })
   .catch(err => console.error("Error al acceder a cámara/micrófono:", err));
@@ -75,6 +82,7 @@ ws.onmessage = async (event) => {
     setTimeout(() => {
       document.getElementById('alerta').classList.add('hidden');
     }, 5000);
+
   }
 
   if (data.Informacion) {
@@ -102,4 +110,12 @@ ws.onmessage = async (event) => {
       console.error("Error agregando ICE:", e);
     }
   }
+
+  if (data.type === 'broadcast_message' && data.message?.type === 'prediccion') {
+    const p = data.message;
+    console.log(`📩 Predicción remota: acción=${p.accion} | confianza=${p.confianza} | ts=${p.timestamp}`);
+    
+    //translationText.textContent = `👥 Remoto: ${p.accion} (${p.confianza})`;
+  }
+
 };

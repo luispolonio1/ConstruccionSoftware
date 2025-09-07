@@ -41,20 +41,41 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
 
-        # retransmitir la señal al grupo, pero excluyendo al que la envió
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                "type": "signal_message",
-                "message": data,
-                "sender_channel": self.channel_name
-            }
-        )
+        msg_type = data.get("type")
+
+        if msg_type in ["prediccion", "translation"]:
+            
+            print(f"📩 Mensaje recibido ({msg_type}): {data}")
+            
+            # Reenviar a todos menos al emisor
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "broadcast_message",
+                    "message": data,
+                    "sender_channel": self.channel_name
+                }
+            )
+        else:
+            # Señalización WebRTC
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "signal_message",
+                    "message": data,
+                    "sender_channel": self.channel_name
+                }
+            )
 
     async def signal_message(self, event):
-        # Evitar enviar el mensaje al que lo originó
         if self.channel_name != event.get("sender_channel"):
             await self.send(text_data=json.dumps(event["message"]))
 
-
+    async def broadcast_message(self, event):
+        if self.channel_name == event.get("sender_channel"):
+            return
+        await self.send(text_data=json.dumps({
+            "type": "broadcast_message",
+            "message": event["message"],
+        }))
 
