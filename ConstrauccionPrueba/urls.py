@@ -23,6 +23,7 @@ from django.contrib import admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-	path('', include('videocall.urls') ),
+    path('', include('Login.urls') ),
+	path('Inicio/', include('videocall.urls') ),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

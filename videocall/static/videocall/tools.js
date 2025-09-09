@@ -103,3 +103,29 @@ const muteBtn = document.getElementById('muteBtn');
       sidebar.classList.toggle('z-50');
       sidebar.classList.toggle('h-full');
     });
+
+
+    document.getElementById('inviteBtn').addEventListener('click', function() {
+      const direccion = window.location.href; // 👉 obtiene la URL actual
+      navigator.clipboard.writeText(direccion)
+        .then(() => {
+        const Toast = Swal.mixin({
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.onmouseenter = Swal.stopTimer;
+                    toast.onmouseleave = Swal.resumeTimer;
+                }
+                });
+                Toast.fire({
+                icon: "success",
+                title: "Enlace copiado al portapapeles"
+                });
+        })
+        .catch(err => {
+          console.error("Error al copiar: ", err);
+        });
+  });
