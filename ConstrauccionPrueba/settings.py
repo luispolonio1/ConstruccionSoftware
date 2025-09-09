@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'videocall',
-    'channels'
+    'channels',
+    'django_extensions'
 ]
 
 # Canal de capas (simple en memoria para pruebas)
