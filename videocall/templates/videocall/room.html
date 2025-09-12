@@ -6,6 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Videollamada - {{ room_name }}</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="preload" href="/static/holistic/holistic_solution_packed_assets_loader.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/holistic/holistic_solution_packed_assets.data" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/holistic/holistic_solution_simd_wasm_bin.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/holistic/holistic_solution_simd_wasm_bin.wasm" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/holistic/holistic_solution_wasm_bin.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/holistic/holistic_solution_wasm_bin.wasm" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/holistic/pose_landmark_full.tflite" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/holistic/holistic.js" as="fetch" crossorigin="anonymous">
+
+  <!-- Preload TensorFlow.js -->
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js" as="script">
 
   <script src="{% static 'holistic/holistic.js' %}"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -264,8 +275,9 @@
   <div id="room-data" data-room="{{ room_name }}" class="hidden"></div>
   
   <!-- Scripts -->
+  <script src="{% static 'videocall/predictions.js' %}" defer></script>
   <script src="{% static 'videocall/llamadas.js' %}" defer></script>
   <script src="{% static 'videocall/tools.js' %}" defer></script>
-  <script src="{% static 'videocall/predictions.js' %}" defer></script>
+  
 </body>
 </html>
