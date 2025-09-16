@@ -1,0 +1,119 @@
+{% load widget_tweaks %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Elegante</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3494E6',
+                        secondary: '#EC6EAD',
+                        accent: '#FF7E5F',
+                        dark: '#2D3748',
+                        light: '#F8FAFC',
+                        background: '#1E293B'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background min-h-screen flex items-center justify-center p-5">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <!-- Header -->
+        <div class="bg-blue-200 py-8 px-6 text-center">
+            <h2 class="text-3xl font-bold mb-2">Crear cuenta</h2>
+            <p class="opacity-90">Regístrate para comenzar</p>
+        </div>
+        
+        <!-- Form -->
+        <form class="px-8 pt-8" method="post">
+            {% csrf_token %}
+            
+            <!-- Username -->
+            <div class="mb-6">
+                <label class="block text-dark font-medium mb-2" for="{{ form.username.id_for_label }}">
+                    {{ form.username.label }}
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-user text-gray-400"></i>
+                    </div>
+                    {{ form.username|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition" }}
+                </div>
+                {% if form.username.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.username.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Password1 -->
+            <div class="mb-6">
+                <label class="block text-dark font-medium mb-2" for="{{ form.password1.id_for_label }}">
+                    {{ form.password1.label }}
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    {{ form.password1|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition" }}
+                </div>
+                {% if form.password1.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.password1.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Password2 -->
+            <div class="mb-6">
+                <label class="block text-dark font-medium mb-2" for="{{ form.password2.id_for_label }}">
+                    {{ form.password2.label }}
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    {{ form.password2|add_class:"w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition" }}
+                </div>
+                {% if form.password2.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.password2.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <!-- Submit -->
+            <button 
+                type="submit" 
+                class="bg-accent hover:bg-opacity-90 text-white font-bold py-3 px-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-opacity-50 transition mb-6"
+            >
+                Registrarme
+            </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="bg-gray-100 py-6 text-center">
+            <p class="text-dark text-sm">
+                ¿Ya tienes una cuenta? 
+                <a href="{% url 'login' %}" class="text-primary font-medium hover:text-secondary transition">Inicia sesión</a>
+            </p>
+        </div>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'tools.js' %}"></script>
+<script>
+if ("{{ error }}" != ""){
+Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: "{{ error|escapejs }}",
+    timer:3000,
+    showConfirmButton:false,
+});
+}
+</script>
+</html>
