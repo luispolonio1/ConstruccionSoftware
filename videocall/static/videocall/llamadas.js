@@ -17,7 +17,7 @@ const remoteVideo = document.getElementById("remoteVideo");
 
 let isCaller = false;
 
-// ✅ Obtener cámara y micrófono
+//Obtener cámara y micrófono
 navigator.mediaDevices.getUserMedia({ video: true, audio: true })
   .then(stream => {
     localVideo.srcObject = stream;
@@ -33,7 +33,7 @@ navigator.mediaDevices.getUserMedia({ video: true, audio: true })
   })
   .catch(err => console.error("Error al acceder a cámara/micrófono:", err));
 
-// ✅ Mostrar stream remoto
+//Mostrar stream remoto
 pc.ontrack = event => {
   if (event.streams && event.streams[0]) {
     remoteVideo.srcObject = event.streams[0];
@@ -57,14 +57,14 @@ pc.onicecandidate = event => {
   }
 };
 
-// ✅ Función para crear la oferta
+// Función para crear la oferta
 async function makeCall() {
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   ws.send(JSON.stringify({ "offer": offer }));
 }
 
-// ✅ Manejo de mensajes desde WebSocket
+// Manejo de mensajes desde WebSocket
 ws.onmessage = async (event) => {
   const data = JSON.parse(event.data);
 
@@ -113,9 +113,8 @@ ws.onmessage = async (event) => {
 
   if (data.type === 'broadcast_message' && data.message?.type === 'prediccion') {
     const p = data.message;
-    console.log(`📩 Predicción remota: acción=${p.accion} | confianza=${p.confianza} | ts=${p.timestamp}`);
+    console.log(`Predicción remota: acción=${p.accion} | confianza=${p.confianza}`);
     
-    //translationText.textContent = `👥 Remoto: ${p.accion} (${p.confianza})`;
   }
 
 };

@@ -104,7 +104,6 @@ const muteBtn = document.getElementById('muteBtn');
       sidebar.classList.toggle('h-full');
     });
 
-
     document.getElementById('inviteBtn').addEventListener('click', function() {
       const direccion = window.location.href; // 👉 obtiene la URL actual
       navigator.clipboard.writeText(direccion)

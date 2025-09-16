@@ -31,7 +31,7 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
                 "message": {"left": True,"Informacion":f"{self.channel_name} ha salido de la llamada"},
                 "sender_channel": self.channel_name
         }
-             )
+            )
         # salir del grupo
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -45,7 +45,7 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
 
         if msg_type in ["prediccion", "translation"]:
             
-            print(f"📩 Mensaje recibido ({msg_type}): {data}")
+            print(f"Mensaje recibido ({msg_type}): {data}")
             
             # Reenviar a todos menos al emisor
             await self.channel_layer.group_send(
