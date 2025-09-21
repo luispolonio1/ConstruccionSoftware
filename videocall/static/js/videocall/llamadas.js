@@ -76,22 +76,24 @@ ws.onmessage = async (event) => {
   if (data.from && data.from === ws.id) return;
 
   if (data.Mensaje) {
-    const mensajeAlerta = data.Mensaje;
-    document.getElementById('alerta').textContent = mensajeAlerta;
-    document.getElementById('alerta').classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('alerta').classList.add('hidden');
-    }, 5000);
+    swal.fire({
+      title: 'información',
+      text: data.Mensaje, 
+      icon: 'info',
+      showConfirmButton:false,
+      timer: 3000
+    });
 
   }
 
   if (data.Informacion) {
-    const mensajeAlerta = data.Informacion;
-    document.getElementById('Informacion').textContent = mensajeAlerta;
-    document.getElementById('Informacion').classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('Informacion').classList.add('hidden');
-    }, 5000);
+    swal.fire({
+      title: 'Información',
+      text: data.Informacion, 
+      icon: 'info',
+      showConfirmButton:false,
+      timer: 3000
+    });
   }
 
   if (data.offer) {

@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,14 +20,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*6+*+h(u(gp+y)m-_n(@p!v0o)ro&fy(diyxr^1k1gss)wm)jo'
+SECRET_KEY = os.environ.get('SECRET_KEY',default='django-insecure-*6+*+h(u(gp+y)m-_n(@p!v0o)ro&fy(diyxr^1k1gss)wm)jo')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = 'RENDER' not in os.environ
 
 ALLOWED_HOSTS = ["*",]
+AUTH_USER_MODEL = "Login.Usuario"
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+]
 
+# 2 horas de sesión
+SESSION_COOKIE_AGE = 60 * 60 * 2  
+
+# No expirar al cerrar el navegador
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  
+
+# Renovar sesión con cada request
+SESSION_SAVE_EVERY_REQUEST = True
 
 
 # Application definition

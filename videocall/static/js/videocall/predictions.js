@@ -14,7 +14,7 @@ let currentTensorSequence = null;
 let currentPrediction = null;
 let isProcessing = false;
 
-const icon_translate = document.getElementById("icon_translate");
+const icon_translate = document.getElementById("toggleProcessing");
 
 const STABLE_N = 3;
 const STABLE_RATIO = 0.6;
@@ -96,7 +96,7 @@ async function initializeAI() {
         model = null;
         }
 
-        model = await tf.loadLayersModel("/static/modelo/model.json");
+        model = await tf.loadLayersModel("/static/js/modelo/model.json");
         console.log("Modelo cargado");
 
         // Clean previous MediaPipe instance
@@ -105,7 +105,7 @@ async function initializeAI() {
         holistic = null;
         }
 
-        const HOLISTIC_BASE = "/static/holistic";
+        const HOLISTIC_BASE = "/static/js/holistic";
 
         holistic = new Holistic({
         locateFile: (file) => `${HOLISTIC_BASE}/${file}`,

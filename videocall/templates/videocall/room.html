@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Videollamada - {{ room_name }}</title>
+  <title>Inicio</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="preload" href="/static/holistic/holistic_solution_packed_assets_loader.js" as="fetch" crossorigin="anonymous">
   <link rel="preload" href="/static/holistic/holistic_solution_packed_assets.data" as="fetch" crossorigin="anonymous">
@@ -39,7 +39,8 @@
             'mic-pulse': 'mic-pulse 1.5s infinite',
             'fade-in': 'fade-in 0.8s ease-out',
             'slide-up': 'slide-up 1s ease-out 0.2s both',
-            'speaking-pulse': 'speaking-pulse 2s infinite'
+            'speaking-pulse': 'speaking-pulse 2s infinite',
+            'float': 'float 6s ease-in-out infinite'
           },
           keyframes: {
             'pulse-dot': {
@@ -61,6 +62,11 @@
             'speaking-pulse': {
               '0%, 100%': { opacity: '0', transform: 'scale(1)' },
               '50%': { opacity: '1', transform: 'scale(1.02)' }
+            },
+            'float': {
+              '0%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-15px)' },
+              '100%': { transform: 'translateY(0px)' }
             }
           }
         }
@@ -96,9 +102,9 @@
       border: 1px solid #053470;
     }
     .btn-success {
-      background-color: rgba(5, 112, 52); /* Verde con transparencia */
+      background-color: rgba(5, 112, 52);
       color: white;
-      border: 1px solid #057034;              /* Verde más fuerte */
+      border: 1px solid #057034;
     }
 
     
@@ -107,7 +113,7 @@
     }
 
     .btn-success:hover {
-      background-color: rgba(5, 112, 52, 0.3); /* Verde con más transparencia al pasar el mouse */
+      background-color: rgba(5, 112, 52, 0.3);
     }
     
     .btn-accent {
@@ -126,6 +132,23 @@
     .bg-secondary-transparent {
       background-color: rgba(5, 52, 112, 0.1);
     }
+    
+    /* Estilos para el mensaje CTA */
+    .cta-card {
+      background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      transition: all 0.4s ease;
+    }
+  
+    .glow {
+      text-shadow: 0 0 15px rgba(96, 165, 250, 0.7);
+    }
+    
+    .feature-icon {
+      background: linear-gradient(145deg, #3b82f6 0%, #60a5fa 100%);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col lg:flex-row overflow-hidden font-sf">
@@ -143,15 +166,26 @@
   <aside id="sidebar" class="hidden lg:flex w-80 bg-black border-minimal border-r flex-col flex-shrink-0">
     <!-- Header -->
      <div class="p-6 border-b border-minimal">
-      <input type="text" id="searchInput" placeholder="Buscar usuario..." class="w-full px-3 py-2 rounded bg-secondary-transparent text-white placeholder-gray-400 border border-minimal focus:outline-none focus:ring-2 focus:ring-primary">
-     </div>
-    <div class="p-6 border-b border-minimal">
-      <h2 class="text-xl font-semibold text-white mb-1">Participantes</h2>
-      <p class="text-sm text-gray-400">{{users.count|default:"desconocidos"}}</p>
+
+        <form class="max-w-md mx-auto">   
+            <label for="default-search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Buscar</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                    </svg>
+                </div>
+                <input type="search" id="default-search" class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Busca Amigos" required />
+                <button type="submit" class="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Buscar</button>
+                <div id="resultados" class="absolute w-full bg-gray-800 text-white rounded-xl shadow-lg mt-2 hidden max-h-60 overflow-y-auto z-50"></div>
+
+            </div>
+        </form>
+
     </div>
-    
     <!-- Lista de participantes -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-3">
+    <div class="flex-1 overflow-y-auto p-4 space-y-3 max-h-[400px]">
+    <h2 class="text-xl font-semibold text-white mb-1">Amigos</h2>
       {% for user in users %}
       <div class="bg-secondary-transparent border-minimal rounded p-3">
         <div class="flex items-center gap-3">
@@ -172,12 +206,12 @@
                 {% if user == request.user %}
                   TÚ ({{ user.username }})
                 {% else %}
-<div class="flex items-center justify-between bg-secondary-transparent rounded px-4 py-2 shadow-lg">
-  <span class="text-white font-medium">{{ user.username }}</span>
-  <button class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors duration-200 flex items-center justify-center">
-    <i class="material-icons">phone_in_talk</i>
-  </button>
-</div>
+                  <div class="flex items-center justify-between bg-secondary-transparent rounded px-4 py-2 shadow-lg">
+                    <span class="text-white font-medium">{{ user.username }}</span>
+                    <button class="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-colors duration-200 flex items-center justify-center">
+                      <i class="material-icons">phone_in_talk</i>
+                    </button>
+                  </div>
                 {% endif %}
               </p>
             {% else %}
@@ -188,8 +222,36 @@
       </div>
       {% endfor %}
     </div>
+    <!-- solicitudes -->
+    <div class="p-6 border-t border-minimal">
+      <h2 class="text-xl font-semibold text-white mb-4">Solicitudes de Amistad</h2>
+      <div class="space-y-3 max-h-48 overflow-y-auto">
+        {% for solicitud in solicitudes %}
+        <div id="solicitud-{{ solicitud.id }}" class="bg-secondary-transparent border-minimal rounded p-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div>
+              <p class="font-medium text-white">{{ solicitud.from_user.username }}</p>
+            </div>
+          </div>
+            <div class="flex gap-2">
+                <button onclick="gestionarSolicitud({{ solicitud.id }}, 'aceptar')" 
+                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">
+                    Aceptar
+                </button>
+                <button onclick="gestionarSolicitud({{ solicitud.id }}, 'rechazar')" 
+                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
+                    Rechazar
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-gray-400">No hay solicitudes pendientes.</p>
+        {% endfor %}
+      </div>
+    </div>
+
     
-    <!-- Información de sala -->
+    <!-- Información de sala
     <div class="p-4 border-t border-minimal">
       <div class="bg-secondary-transparent border-minimal rounded p-3">
         <div class="flex items-center justify-between mb-2">
@@ -204,7 +266,7 @@
           Invitar usuarios
         </button>
       </div>
-    </div>
+    </div>-->
   </aside>
 
   <!-- Contenido principal -->
@@ -214,45 +276,96 @@
       👥
     </button>
 
-    <!-- Contenedor de videos -->
-    <div class="flex-1 flex flex-col gap-3 p-3 lg:flex-row lg:gap-6 lg:p-6 min-h-0">
-      <!-- Video remoto -->
-      <div class="flex-1 relative rounded overflow-hidden bg-black border border-minimal transition-all duration-300 min-h-[40vh] lg:min-h-0 video-container">
+<!--<div class="hidden flex-1 relative rounded overflow-hidden bg-black border border-minimal transition-all duration-300 min-h-[40vh] lg:min-h-0 video-container">
         <video id="remoteVideo" autoplay playsinline class="w-full h-full object-contain bg-black rounded"></video>
-        
-        <!-- Etiqueta de video -->
+
         <div class="absolute top-3 left-3 bg-black/70 text-white px-2.5 py-1.5 rounded text-xs font-medium flex items-center gap-2 border border-minimal">
           <div class="w-1.5 h-1.5 bg-white rounded-full animate-mic-pulse"></div>
           <span>Usuario Remoto</span>
         </div>
         
-        <!-- Marcador de posición de video -->
+
         <div id="remotePlaceholder" class="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center text-gray-400 text-sm font-medium hidden">
           <div class="text-2xl lg:text-3xl mb-2">📷</div>
           <span>Esperando video...</span>
         </div>
       </div>
 
-      <!-- Video local -->
+ 
       <div id="localVideoWrapper" class="flex-1 relative rounded overflow-hidden bg-black border border-minimal transition-all duration-300 min-h-[40vh] lg:min-h-0 video-container">
         <video id="localVideo" autoplay playsinline muted class="w-full h-full object-cover bg-black rounded"></video>
         
-        <!-- Etiqueta de video -->
+
         <div class="absolute top-3 left-3 bg-black/70 text-white px-2.5 py-1.5 rounded text-xs font-medium flex items-center gap-2 border border-minimal">
           <div id="localMicIndicator" class="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
           <span>Tú</span>
         </div>
         
-        <!-- Marcador de posición de video -->
         <div id="localPlaceholder" class="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center text-gray-400 text-sm font-medium hidden">
           <div class="text-2xl lg:text-3xl mb-2">📷</div>
           <span>Sin cámara</span>
         </div>
       </div>
     </div>
+  -->
+    <!-- Mensaje CTA cuando no hay llamada -->
+<div id="noCallCTA" class="mt-4 mx-4 mb-8 h-full flex flex-col items-center justify-center p-6 rounded-2xl cta-card">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold mb-3 glow">¡Conecta con Todos!</h2>
+        <p class="text-lg text-blue-200 mb-4">Ten reuniones y llama a tus amigos con traducción de lenguaje de señas integrada</p>
+        
+        <div class="flex flex-wrap justify-center gap-4 mb-6">
+          <div class="flex items-center gap-2">
+            <div class="feature-icon w-8 h-8 rounded-full flex items-center justify-center">
+              <i class="material-icons">person</i>
+            </div>
+            <span class="text-sm">Reuniones grupales</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="feature-icon w-8 h-8 rounded-full flex items-center justify-center">
+              <i class="material-icons">compare_arrows</i>
+            </div>
+            <span class="text-sm">Traducción de señas</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="feature-icon w-8 h-8 rounded-full flex items-center justify-center">
+              <i class="material-icons">graphic_eq</i>
+            </div>
+            <span class="text-sm">Audio claro</span>
+          </div>
+        </div>
+        
+        <button class="btn-primary px-6 py-2 rounded-lg font-semibold text-md">
+          Iniciar una llamada ahora
+        </button>
+      </div>
+      
+      <div class="flex flex-col md:flex-row gap-4 w-full max-w-3xl">
+        <div class="flex-1 bg-slate-800/50 p-4 rounded-xl border border-minimal">
+          <h3 class="font-bold text-md mb-2 flex items-center gap-2">
+            <span>Traducción de Señas</span>
+          </h3>
+          <p class="text-blue-100 text-sm">Nuestra IA detecta y traduce lenguaje de señas en tiempo real para una comunicación inclusiva.</p>
+        </div>
+        
+        <div class="flex-1 bg-slate-800/50 p-4 rounded-xl border border-minimal">
+          <h3 class="font-bold text-md mb-2 flex items-center gap-2">
+            <span>Audio de Alta Calidad</span>
+          </h3>
+          <p class="text-blue-100 text-sm">Disfruta de audio cristalino incluso con conexiones de baja velocidad.</p>
+        </div>
+        
+        <div class="flex-1 bg-slate-800/50 p-4 rounded-xl border border-minimal">
+          <h3 class="font-bold text-md mb-2 flex items-center gap-2">
+            <span>Chat Integrado</span>
+          </h3>
+          <p class="text-blue-100 text-sm">Complementa tus llamadas con mensajes de texto y compartir archivos.</p>
+        </div>
+      </div>
+    </div>
 
-    <!-- Controles -->
-    <div class="sticky bottom-0 left-0 right-0 pb-4 pt-2 bg-gradient-to-t from-black to-transparent pointer-events-none">
+        <!-- Controles -->
+    <div class="hidden sticky bottom-0 left-0 right-0 pb-4 pt-2 bg-gradient-to-t from-black to-transparent pointer-events-none">
       <div class="flex justify-center">
         <div class="flex gap-2 bg-black px-4 py-3 rounded-xl border border-minimal animate-slide-up pointer-events-auto">
           <!-- Botón de silencio -->
@@ -287,5 +400,28 @@
   <script src="{% static 'videocall/llamadas.js' %}" defer></script>
   <script src="{% static 'videocall/tools.js' %}" defer></script>
   <script src="{% static 'videocall/predictions.js' %}" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script>
+    // Simulación de estado de llamada (sin llamada activa)
+    // En una implementación real, esto vendría de tu lógica de Django/JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+      // Por defecto, mostrar el mensaje CTA
+      document.getElementById('remotePlaceholder').classList.remove('hidden');
+      document.getElementById('localPlaceholder').classList.remove('hidden');
+      
+      // En una implementación real, verificarías si hay una llamada activa
+      // y mostrarías/ocultarías el CTA según corresponda
+      
+      // Ejemplo: mostrar CTA si no hay llamada activa
+      const isInCall = false; // Esto vendría de tu lógica de aplicación
+      
+      if (!isInCall) {
+        document.getElementById('noCallCTA').classList.remove('hidden');
+      }
+    });
+  </script>
+  <script type="module" src="{% static 'amigos/BuscarAmigos.js' %}"></script>
+  <script src="{% static 'amigos/AceptarRechazarSolicitud.js' %}"></script>
 </body>
 </html>

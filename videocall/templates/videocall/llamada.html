@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Llamada-{{room_name}}{% endblock %}
+{% block head %}
+  <link rel="preload" href="/static/js/holistic/holistic_solution_packed_assets_loader.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/js/holistic/holistic_solution_packed_assets.data" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/js/holistic/holistic_solution_simd_wasm_bin.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/js/holistic/holistic_solution_simd_wasm_bin.wasm" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/js/holistic/holistic_solution_wasm_bin.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/js/holistic/holistic_solution_wasm_bin.wasm" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/js/holistic/pose_landmark_full.tflite" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/js/holistic/holistic.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js" as="script">
+  <script src="{% static 'js/holistic/holistic.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/llamada.css' %}">
+{% endblock %}
+{% block content %}
+
+<!-- Contenedor principal de la cuadrícula de video -->
+<div class="video-grid">
+  <!-- Video remoto -->
+  <div class="video-container relative rounded overflow-hidden bg-black border border-minimal">
+    <video id="remoteVideo" autoplay playsinline class="w-full h-full object-contain bg-black"></video>
+
+    <div class="absolute top-3 left-3 bg-black/70 text-white px-2.5 py-1.5 rounded text-xs font-medium flex items-center gap-2 border border-minimal">
+      <div class="w-1.5 h-1.5 bg-white rounded-full animate-mic-pulse"></div>
+      <span>Usuario Remoto</span>
+    </div>
+
+    <div id="remotePlaceholder" class="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center text-gray-400 text-sm font-medium hidden">
+      <div class="text-2xl lg:text-3xl mb-2">📷</div>
+      <span>Esperando video...</span>
+    </div>
+  </div>
+
+  <!-- Video local -->
+  <div id="localVideoWrapper" class="video-container relative rounded overflow-hidden bg-black border border-minimal">
+    <video id="localVideo" autoplay playsinline muted class="w-full h-full object-cover bg-black"></video>
+
+    <div class="absolute top-3 left-3 bg-black/70 text-white px-2.5 py-1.5 rounded text-xs font-medium flex items-center gap-2 border border-minimal">
+      <div id="localMicIndicator" class="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+      <span>Tú</span>
+    </div>
+    
+    <div id="localPlaceholder" class="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center text-gray-400 text-sm font-medium hidden">
+      <div class="text-2xl lg:text-3xl mb-2">📷</div>
+      <span>Sin cámara</span>
+    </div>
+  </div>
+</div>
+
+<!-- Controles -->
+<div class="controls-container pb-4 pt-2 bg-gradient-to-t from-black to-transparent pointer-events-none">
+  <div class="flex justify-center">
+    <div class="flex gap-2 bg-black px-4 py-3 rounded-xl border border-minimal animate-slide-up pointer-events-auto">
+      <!-- Botón de silencio -->
+      <button id="muteBtn" class="btn-primary w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors" title="Silenciar/Activar micrófono" aria-label="Silenciar micrófono">
+          <i class="material-icons">mic</i>
+      </button>
+      
+      <!-- Botón de video -->
+      <button id="videoBtn" class="btn-primary w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors" title="Activar/Desactivar cámara" aria-label="Activar cámara">
+        <i class="material-icons">videocam</i>
+      </button>
+
+      <!-- Botón de procesamiento -->
+      <button id="icon_translate" class="btn-primary w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors" title="Iniciar procesamiento" aria-label="Iniciar procesamiento" style="background-color: #4CAF50">
+        <i onclick="toggleProcessing()" id="toggleProcessing" class="material-icons">translate</i>
+      </button>
+      
+      <!-- Botón de finalizar llamada -->
+      <button id="endBtn" class="btn-accent w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors" title="Finalizar llamada" aria-label="Finalizar llamada">
+        <i class="material-icons">call_end</i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="room-data" data-room="{{ room_name }}" class="hidden"></div>
+{% endblock %}
+{% block scripts %}
+  <script src="{% static 'js/videocall/predictions.js' %}" defer></script>
+  <script src="{% static 'js/videocall/llamadas.js' %}" defer></script>
+  <script src="{% static 'js/videocall/tools.js' %}" defer></script>
+{% endblock %}

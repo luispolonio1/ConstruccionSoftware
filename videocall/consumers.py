@@ -5,6 +5,7 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"chat_{self.room_name}"
+        self.username = self.scope["user"].username if self.scope["user"].is_authenticated else "Anónimo"
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -13,25 +14,32 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
-        # Avisar solo a los demás que alguien entró (no al que se conecta ahora)
+        # Avisar a los demás que alguien entró
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 "type": "signal_message",
-                "message": {"joined": True,"Mensaje":f"Se a unido a la llamada {self.channel_name}"},
+                "message": {
+                    "joined": True,
+                    "Mensaje": f"🔔 {self.username} se ha unido a la llamada"
+                },
                 "sender_channel": self.channel_name
             }
         )
 
     async def disconnect(self, close_code):
+        # Avisar a los demás que alguien salió
         await self.channel_layer.group_send(
-        self.room_group_name,
-        {
+            self.room_group_name,
+            {
                 "type": "signal_message",
-                "message": {"left": True,"Informacion":f"{self.channel_name} ha salido de la llamada"},
+                "message": {
+                    "left": True,
+                    "Informacion": f"❌ {self.username} ha salido de la llamada"
+                },
                 "sender_channel": self.channel_name
-        }
-            )
+            }
+        )
         # salir del grupo
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -40,14 +48,11 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-
         msg_type = data.get("type")
 
+        # 🔹 Mensajes especiales (predicción, traducción, etc.)
         if msg_type in ["prediccion", "translation"]:
-            
             print(f"Mensaje recibido ({msg_type}): {data}")
-            
-            # Reenviar a todos menos al emisor
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -56,8 +61,51 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
                     "sender_channel": self.channel_name
                 }
             )
+
+        # 🔹 Solicitud de llamada
+        elif msg_type == "call_request":
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "signal_message",
+                    "message": {
+                        "type": "incoming_call",
+                        "from": self.username
+                    },
+                    "sender_channel": self.channel_name
+                }
+            )
+
+        # 🔹 Aceptar llamada
+        elif msg_type == "call_accepted":
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "signal_message",
+                    "message": {
+                        "type": "call_accepted",
+                        "from": self.username
+                    },
+                    "sender_channel": self.channel_name
+                }
+            )
+
+        # 🔹 Rechazar llamada
+        elif msg_type == "call_rejected":
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "signal_message",
+                    "message": {
+                        "type": "call_rejected",
+                        "from": self.username
+                    },
+                    "sender_channel": self.channel_name
+                }
+            )
+
+        # 🔹 Señalización WebRTC normal (offer/answer/ice)
         else:
-            # Señalización WebRTC
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -78,4 +126,3 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
             "type": "broadcast_message",
             "message": event["message"],
         }))
-

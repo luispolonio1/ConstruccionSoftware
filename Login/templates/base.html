@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3494E6',
+                        secondary: '#EC6EAD',
+                        accent: '#FF7E5F',
+                        dark: '#2D3748',
+                        light: '#F8FAFC',
+                        background: '#1E293B'
+                    }
+                }
+            }
+        }
+    </script>
+    {% block head %}
+
+    {% endblock %}
+</head>
+<body class="bg-background min-h-screen flex items-center justify-center p-5">
+    {% block content %}
+    {% endblock %}
+</body>
+{% block scripts %}
+{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'tools.js' %}"></script>
+<script>
+if ("{{ error }}" != ""){
+Swal.fire({
+    icon: 'error',
+    title: 'Error',
+    text: "{{ error|escapejs }}",
+    timer:3000,
+    showConfirmButton:false,
+});
+}
+</script>
+</html>

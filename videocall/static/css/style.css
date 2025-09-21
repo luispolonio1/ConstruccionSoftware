@@ -1,0 +1,76 @@
+body {
+      background-color: #000000;
+      color: #ffffff;
+    }
+    
+    .video-container {
+      background-color: #000;
+    }
+    
+    .border-minimal {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .btn-primary {
+      background-color: #053470;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #04295c;
+    }
+    
+    .btn-secondary {
+      background-color: rgba(5, 52, 112);
+      color: white;
+      border: 1px solid #053470;
+    }
+    .btn-success {
+      background-color: rgba(5, 112, 52);
+      color: white;
+      border: 1px solid #057034;
+    }
+
+    
+    .btn-secondary:hover {
+      background-color: rgba(5, 52, 112, 0.3);
+    }
+
+    .btn-success:hover {
+      background-color: rgba(5, 112, 52, 0.3);
+    }
+    
+    .btn-accent {
+      background-color: #F54927;
+      color: white;
+    }
+    
+    .btn-accent:hover {
+      background-color: #e04122;
+    }
+    
+    .text-accent {
+      color: #F54927;
+    }
+    
+    .bg-secondary-transparent {
+      background-color: rgba(5, 52, 112, 0.1);
+    }
+    
+    /* Estilos para el mensaje CTA */
+    .cta-card {
+      background: linear-gradient(145deg, #1e293b 0%, #334155 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      transition: all 0.4s ease;
+    }
+  
+    .glow {
+      text-shadow: 0 0 15px rgba(96, 165, 250, 0.7);
+    }
+    
+    .feature-icon {
+      background: linear-gradient(145deg, #3b82f6 0%, #60a5fa 100%);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+

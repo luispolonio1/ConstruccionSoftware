@@ -1,30 +1,7 @@
+{% extends "base.html" %}
 {% load widget_tweaks %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Elegante</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3494E6',
-                        secondary: '#EC6EAD',
-                        accent: '#FF7E5F',
-                        dark: '#2D3748',
-                        light: '#F8FAFC',
-                        background: '#1E293B'
-                    }
-                }
-            }
-        }
-    </script>
-</head>
-<body class="bg-background min-h-screen flex items-center justify-center p-5">
+{% block title %}Iniciar Sesión{% endblock %}
+{% block content %}
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <!-- Header -->
         <div class="bg-blue-200 py-8 px-6 text-center">
@@ -124,5 +101,4 @@
             </p>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}
