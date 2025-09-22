@@ -1,27 +1,23 @@
-const actions = ["hello", "thanks", "iloveyou"];
-let sequence = [];
-let sentence = [];
-let predictions = [];
-const threshold = 0.7;
+// Array con las palabras que corresponden a cada índice
+const classes = [
+    "Adios", "Bien", "Como", "ComoEstas", "DeNuevo", "Despacio", "El", "Entiendo",
+    "Gracias", "Hola", "Hoy", "Increible", "Listo", "LoSiento", "Mal", "MasOMenos",
+    "Mio", "No", "Nombre", "Nosotros", "Ok", "PorFavor", "Que", "Si", "TeAmo", "Tu",
+    "Tuyo", "Yo"
+]; 
 
-let model = null;
-let holistic = null;
+let sentence = [];
 let isProcessingEnabled = false;
 let processingInterval = null;
-
-// Variables for resource management
-let currentTensorSequence = null;
-let currentPrediction = null;
 let isProcessing = false;
 
-const icon_translate = document.getElementById("toggleProcessing");
+let model = null;
 
-const STABLE_N = 3;
-const STABLE_RATIO = 0.6;
+let hands = null;
 
-let answerApplied = false;
+const icon_translate = document.getElementById("icon_translate");
 
-// GPU warm-up function
+// Preparar el WebGL
 function warmUpGPU() {
     const canvas = document.createElement('canvas');
     canvas.width = 256;
@@ -33,19 +29,19 @@ function warmUpGPU() {
     // Initialize shaders and buffers to warm up the GPU pipeline
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vertexShader, `
-    attribute vec2 position;
-    void main() {
-        gl_Position = vec4(position, 0.0, 1.0);
-    }
+        attribute vec2 position;
+        void main() {
+            gl_Position = vec4(position, 0.0, 1.0);
+        }
     `);
     gl.compileShader(vertexShader);
 
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(fragmentShader, `
-    precision mediump float;
-    void main() {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    }
+        precision mediump float;
+        void main() {
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        }
     `);
     gl.compileShader(fragmentShader);
 
@@ -58,7 +54,7 @@ function warmUpGPU() {
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    -1, -1, 1, -1, -1, 1, 1, 1
+        -1, -1, 1, -1, -1, 1, 1, 1
     ]), gl.STATIC_DRAW);
 
     gl.useProgram(program);
@@ -67,8 +63,8 @@ function warmUpGPU() {
 
     // Execute multiple render calls to fully warm up
     for (let i = 0; i < 3; i++) {
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
     // Clean up resources
@@ -80,78 +76,51 @@ function warmUpGPU() {
 
 async function initializeAI() {
     try {
-        console.log("Cargando modelo...");
+        console.log("Inicializando modelo scikit-learn...");
 
         // Wait on first load to let drivers initialize
         if (!sessionStorage.getItem('mediapipe_warmed')) {
-        console.log("Primera carga - inicializando GPU...");
-        warmUpGPU();
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        sessionStorage.setItem('mediapipe_warmed', 'true');
+            console.log("Primera carga - inicializando GPU...");
+            warmUpGPU();
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            sessionStorage.setItem('mediapipe_warmed', 'true');
         }
 
-        // Clean previous model
-        if (model) {
-        model.dispose();
-        model = null;
+        if (typeof Hands === 'undefined') {
+            throw new Error("MediaPipe Hands no está cargado. Asegúrate de incluir los scripts de MediaPipe antes de este archivo.");
         }
 
-        model = await tf.loadLayersModel("/static/js/modelo/model.json");
-        console.log("Modelo cargado");
+        if (typeof score !== 'function') {
+            throw new Error("La función score del modelo no está disponible. Asegúrate de incluir model.js");
+        }
+        
+        model = { loaded: true };
+        console.log("Modelo scikit-learn listo");
 
-        // Clean previous MediaPipe instance
-        if (holistic) {
-        holistic.close();
-        holistic = null;
+        if (hands) {
+            console.log("Cerrando sesión previa de MediaPipe...");
+            hands.close();
+            hands = null;
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
-        const HOLISTIC_BASE = "/static/js/holistic";
-
-        holistic = new Holistic({
-        locateFile: (file) => `${HOLISTIC_BASE}/${file}`,
+        hands = new Hands({
+            locateFile: (file) => `/static/js/hands/${file}`,
         });
 
-        holistic.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        enableSegmentation: false,
-        smoothSegmentation: false,
-        refineFaceLandmarks: false,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5,
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.3,
+            minTrackingConfidence: 0.5,
         });
 
-        holistic.onResults(onResults);
-        console.log("MediaPipe inicializado");
+        hands.onResults(onResults);
+        console.log("MediaPipe Hands inicializado");
         
     } catch (error) {
         console.error("Error cargando IA:", error);
-        cleanupTensors();
     }
-}
-
-function extractKeypoints(results) {
-    let pose = new Array(33 * 4).fill(0);
-    if (results.poseLandmarks) {
-        pose = results.poseLandmarks.map((res) => [res.x, res.y, res.z, res.visibility]).flat();
-    }
-
-    let face = new Array(468 * 3).fill(0);
-    if (results.faceLandmarks) {
-        face = results.faceLandmarks.map((res) => [res.x, res.y, res.z]).flat();
-    }
-
-    let lh = new Array(21 * 3).fill(0);
-    if (results.leftHandLandmarks) {
-        lh = results.leftHandLandmarks.map((res) => [res.x, res.y, res.z]).flat();
-    }
-
-    let rh = new Array(21 * 3).fill(0);
-    if (results.rightHandLandmarks) {
-        rh = results.rightHandLandmarks.map((res) => [res.x, res.y, res.z]).flat();
-    }
-
-    return [...pose, ...face, ...lh, ...rh];
 }
 
 async function onResults(results) {
@@ -160,116 +129,126 @@ async function onResults(results) {
     isProcessing = true;
 
     try {
-        const keypoints = extractKeypoints(results);
-        sequence.push(keypoints);
-        if (sequence.length > 30) sequence.shift();
-
-        if (sequence.length === 30) {
-        // Clean previous tensors before creating new ones
-        cleanupTensors();
-
-        currentTensorSequence = tf.tensor([sequence]);
-        currentPrediction = await model.predict(currentTensorSequence);
-        const res = await currentPrediction.data();
-
-        const maxIndex = res.indexOf(Math.max(...res));
-        const confidence = Math.max(...res);
-
-        predictions.push(maxIndex);
-
-        const lastN = predictions.slice(-STABLE_N);
-        const countSame = lastN.filter((i) => i === maxIndex).length;
-        const isStable = countSame / STABLE_N >= STABLE_RATIO;
-
-        if (isStable && confidence > threshold) {
-            sendWS("prediccion", {
-            accion: actions[maxIndex],
-            confianza: Number(confidence.toFixed(3)),
-            timestamp: new Date().toISOString(),
-            });
-
-            if (sentence.length > 0) {
-            if (actions[maxIndex] !== sentence[sentence.length - 1]) {
-                sentence.push(actions[maxIndex]);
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+            let data_aux = [];
+            
+            // Inicializar variables para ambas manos
+            let left_hand_landmarks = null;
+            let right_hand_landmarks = null;
+            
+            for (let idx = 0; idx < results.multiHandLandmarks.length; idx++) {
+                let hand_landmarks = results.multiHandLandmarks[idx];
+                
+                if (results.multiHandedness && results.multiHandedness[idx]) {
+                    let handedness = results.multiHandedness[idx];
+                    let hand_label = handedness.label;
+                    
+                    if (hand_label === 'Left') {
+                        left_hand_landmarks = hand_landmarks;
+                    } else if (hand_label === 'Right') {
+                        right_hand_landmarks = hand_landmarks;
+                    }
+                }
             }
-            } else {
-            sentence.push(actions[maxIndex]);
+            
+            let hands_to_process = [
+                { name: "Right", landmarks: right_hand_landmarks },
+                { name: "Left", landmarks: left_hand_landmarks }
+            ];
+            
+            for (let hand_info of hands_to_process) {
+                let hand_landmarks = hand_info.landmarks;
+                
+                if (hand_landmarks !== null && hand_landmarks.length === 21) {
+                    let x_coords = [];
+                    let y_coords = [];
+                    
+                    for (let i = 0; i < 21; i++) {
+                        let landmark = hand_landmarks[i];
+                        x_coords.push(landmark.x);
+                        y_coords.push(landmark.y);
+                    }
+                    
+                    let min_x = Math.min(...x_coords);
+                    let min_y = Math.min(...y_coords);
+                    
+                    for (let i = 0; i < 21; i++) {
+                        data_aux.push(x_coords[i] - min_x);
+                        data_aux.push(y_coords[i] - min_y);
+                    }
+                } else {
+                    for (let i = 0; i < 42; i++) {
+                        data_aux.push(0.0);
+                    }
+                }
             }
-        }
+            
+            // Solo hacer predicción si tenemos exactamente 84 valores
+            if (data_aux.length === 84) {
+                const probabilities = score(data_aux);
+                
+                const maxIndex = probabilities.indexOf(Math.max(...probabilities));
+                const confidence = probabilities[maxIndex];
 
-        if (sentence.length > 5) {
-            sentence = sentence.slice(-5);
-        }
+                const predicted_character = classes[maxIndex];
 
-        if (sentence.length > 0) {
-            const translation = sentence.join(" ");
-            console.log("Traducción:", translation);
-        }
+                if (confidence > 0.15) {
+                    sendWS("prediccion", {
+                        accion: predicted_character,
+                        confianza: Number(confidence.toFixed(3)),
+                        timestamp: new Date().toISOString(),
+                    });
 
-        // Clean tensors immediately after use
-        cleanupTensors();
+
+                    console.log(`Predicción actual: ${predicted_character} (${confidence.toFixed(3)})`);
+                }
+            }
+        } else {
+            console.log("No se detectaron manos");
         }
     } catch (error) {
         console.error("Error en predicción:", error);
-        cleanupTensors();
     } finally {
         isProcessing = false;
     }
 }
 
-function cleanupTensors() {
-    if (currentTensorSequence) {
-        currentTensorSequence.dispose();
-        currentTensorSequence = null;
-    }
-    if (currentPrediction) {
-        currentPrediction.dispose();
-        currentPrediction = null;
-    }
-}
-
 function toggleProcessing() {
-    if (!model || !holistic) {
+    if (!model || !hands) {
         console.warn("IA no está lista");
         return;
     }
 
     if (!isProcessingEnabled) {
         isProcessingEnabled = true;
-        icon_translate.textContent = "stop";
-        toggleBtn.style.background = "#f44336";
+        toggleBtn.textContent = "stop";
+        icon_translate.style.background = "#f44336";
 
-        // Clean tensors before starting
-        cleanupTensors();
-        
         processingInterval = setInterval(() => {
-        if (localVideo.videoWidth > 0 && !isProcessing) {
-            try {
-            holistic.send({ image: localVideo });
-            } catch (error) {
-            console.error("Error enviando imagen a MediaPipe:", error);
-            // Reinitialize on error
-            setTimeout(() => {
-                if (holistic) holistic.close();
-                initializeAI();
-            }, 1000);
+            if (localVideo.videoWidth > 0 && !isProcessing) {
+                try {
+                    hands.send({ image: localVideo });
+                } catch (error) {
+                    console.error("Error enviando imagen a MediaPipe:", error);
+                    // Reinitialize on error
+                    setTimeout(() => {
+                        if (hands) hands.close();
+                        initializeAI();
+                    }, 1000);
+                }
             }
-        }
         }, 100);
 
         console.log("Procesamiento INICIADO");
     } else {
         isProcessingEnabled = false;
-        icon_translate.textContent = "translate";
-        toggleBtn.style.background = "#4CAF50";
+        toggleBtn.textContent = "translate";
+        icon_translate.style.background = "#4CAF50";
 
         if (processingInterval) {
-        clearInterval(processingInterval);
-        processingInterval = null;
+            clearInterval(processingInterval);
+            processingInterval = null;
         }
-
-        // Clean tensors when stopping
-        setTimeout(cleanupTensors, 100);
 
         console.log("Procesamiento DETENIDO");
     }
@@ -277,10 +256,6 @@ function toggleProcessing() {
 
 function clearTranslation() {
     sentence = [];
-    predictions = [];
-    sequence = [];
-    // Clean tensors on clear
-    cleanupTensors();
     console.log("Traducción limpiada");
 }
 
@@ -297,11 +272,9 @@ window.addEventListener('beforeunload', () => {
     if (isProcessingEnabled) {
         toggleProcessing();
     }
-    cleanupTensors();
-    if (holistic) {
-        holistic.close();
+    if (hands) {
+        hands.close();
     }
-    if (model) {
-        model.dispose();
-    }
+    // Limpiar sessionStorage para forzar warm-up en próxima carga
+    sessionStorage.removeItem('mediapipe_warmed');
 });

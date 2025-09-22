@@ -6,20 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inicio</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="preload" href="/static/holistic/holistic_solution_packed_assets_loader.js" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="/static/holistic/holistic_solution_packed_assets.data" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="/static/holistic/holistic_solution_simd_wasm_bin.js" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="/static/holistic/holistic_solution_simd_wasm_bin.wasm" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="/static/holistic/holistic_solution_wasm_bin.js" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="/static/holistic/holistic_solution_wasm_bin.wasm" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="/static/holistic/pose_landmark_full.tflite" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="/static/holistic/holistic.js" as="fetch" crossorigin="anonymous">
+  <!-- MediaPipe Hands preloads -->
+  <link rel="preload" href="/static/hands/hands_solution_packed_assets_loader.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/hands/hands_solution_packed_assets.data" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/hands/hands_solution_simd_wasm_bin.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/hands/hands_solution_simd_wasm_bin.wasm" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/hands/hands_solution_wasm_bin.js" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/hands/hands_solution_wasm_bin.wasm" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/hands/hand_landmark_full.tflite" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="/static/hands/hands.js" as="fetch" crossorigin="anonymous">
 
-  <!-- Preload TensorFlow.js -->
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js" as="script">
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-  <script src="{% static 'holistic/holistic.js' %}"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
 
   
   <script src="https://cdn.tailwindcss.com"></script>
@@ -400,6 +398,7 @@
   <script src="{% static 'videocall/llamadas.js' %}" defer></script>
   <script src="{% static 'videocall/tools.js' %}" defer></script>
   <script src="{% static 'videocall/predictions.js' %}" defer></script>
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
   <script>
