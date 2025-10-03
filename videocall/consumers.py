@@ -50,7 +50,7 @@ class VideoCallConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         msg_type = data.get("type")
 
-        # 🔹 Mensajes especiales (predicción, traducción, etc.)
+        #Mensajes especiales (predicción, traducción, etc.)
         if msg_type in ["prediccion", "translation"]:
             print(f"Mensaje recibido ({msg_type}): {data}")
             await self.channel_layer.group_send(

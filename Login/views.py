@@ -5,6 +5,8 @@ from Login.models import Usuario, FriendRequest
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.forms import UserCreationForm
 from django.http import JsonResponse
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 # Create your views here.
 
 
@@ -65,10 +67,22 @@ def enviar_solicitud(request, user_id):
         to_user=to_user,
         defaults={"status": "pending"}
     )
-
+    
     if not created:
         return JsonResponse({"message": "Solicitud ya existe", "status": fr.status}, status=400)
-    print("Solicitud enviada")
+    #print("Solicitud enviada")
+    channel_layer = get_channel_layer()
+    #print(to_user.username)
+    async_to_sync(channel_layer.group_send)(
+        f'user_{to_user.id}',
+        {
+            'type': 'nueva_solicitud',
+            'solicitud': {
+                'id': fr.id,
+                'from_user_username': request.user.username,
+            }
+        }
+    )
     return JsonResponse({"message": "Solicitud enviada", "status": fr.status})
 
 
@@ -87,7 +101,31 @@ def aceptar_solicitud(request, solicitud_id):
     # Añadir a la lista de amigos
     request.user.amigo.add(solicitud.from_user)
     solicitud.from_user.amigo.add(request.user)
-
+    
+    channel_layer = get_channel_layer()
+    #print(f"Channel {channel_layer}")
+    
+    async_to_sync(channel_layer.group_send)(
+        f'user_{request.user.id}',
+        {
+            'type': 'nuevo_amigo',
+            'amigo': {
+                'id': solicitud.from_user.id,
+                'username': solicitud.from_user.username,
+            }
+        }
+    )
+    async_to_sync(channel_layer.group_send)(
+        f'user_{solicitud.from_user.id}',
+        {
+            'type': 'nuevo_amigo',
+            'amigo': {
+                'id': request.user.id,
+                'username': request.user.username,
+            }
+        }
+    )
+    
     return JsonResponse({"message": "Solicitud aceptada"})
 
 

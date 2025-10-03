@@ -6,7 +6,7 @@ const resultados = document.getElementById("resultados");
 input.addEventListener("input", async () => {
     const query = input.value.trim();
 
-    if (query.length < 4) {
+    if (query.length < 2) {
         resultados.innerHTML = "";
         resultados.classList.add("hidden");
         return;

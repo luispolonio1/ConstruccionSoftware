@@ -4,9 +4,14 @@ const classes = [
     "Gracias", "Hola", "Hoy", "Increible", "Listo", "LoSiento", "Mal", "MasOMenos",
     "Mio", "No", "Nombre", "Nosotros", "Ok", "PorFavor", "Que", "Si", "TeAmo", "Tu",
     "Tuyo", "Yo"
-]; 
+];
 
 let sentence = [];
+let currentPrediction = null;
+let predictionCount = 0;
+const MIN_REPETITIONS = 3; // Mínimo de repeticiones para considerar válida
+const MAX_SENTENCE_LENGTH = 10;
+
 let isProcessingEnabled = false;
 let processingInterval = null;
 let isProcessing = false;
@@ -22,7 +27,7 @@ function warmUpGPU() {
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
-    
+
     const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
     if (!gl) return;
 
@@ -93,7 +98,7 @@ async function initializeAI() {
         if (typeof score !== 'function') {
             throw new Error("La función score del modelo no está disponible. Asegúrate de incluir model.js");
         }
-        
+
         model = { loaded: true };
         console.log("Modelo scikit-learn listo");
 
@@ -117,7 +122,7 @@ async function initializeAI() {
 
         hands.onResults(onResults);
         console.log("MediaPipe Hands inicializado");
-        
+
     } catch (error) {
         console.error("Error cargando IA:", error);
     }
@@ -131,18 +136,18 @@ async function onResults(results) {
     try {
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
             let data_aux = [];
-            
+
             // Inicializar variables para ambas manos
             let left_hand_landmarks = null;
             let right_hand_landmarks = null;
-            
+
             for (let idx = 0; idx < results.multiHandLandmarks.length; idx++) {
                 let hand_landmarks = results.multiHandLandmarks[idx];
-                
+
                 if (results.multiHandedness && results.multiHandedness[idx]) {
                     let handedness = results.multiHandedness[idx];
                     let hand_label = handedness.label;
-                    
+
                     if (hand_label === 'Left') {
                         left_hand_landmarks = hand_landmarks;
                     } else if (hand_label === 'Right') {
@@ -150,28 +155,28 @@ async function onResults(results) {
                     }
                 }
             }
-            
+
             let hands_to_process = [
                 { name: "Right", landmarks: right_hand_landmarks },
                 { name: "Left", landmarks: left_hand_landmarks }
             ];
-            
+
             for (let hand_info of hands_to_process) {
                 let hand_landmarks = hand_info.landmarks;
-                
+
                 if (hand_landmarks !== null && hand_landmarks.length === 21) {
                     let x_coords = [];
                     let y_coords = [];
-                    
+
                     for (let i = 0; i < 21; i++) {
                         let landmark = hand_landmarks[i];
                         x_coords.push(landmark.x);
                         y_coords.push(landmark.y);
                     }
-                    
+
                     let min_x = Math.min(...x_coords);
                     let min_y = Math.min(...y_coords);
-                    
+
                     for (let i = 0; i < 21; i++) {
                         data_aux.push(x_coords[i] - min_x);
                         data_aux.push(y_coords[i] - min_y);
@@ -182,30 +187,65 @@ async function onResults(results) {
                     }
                 }
             }
-            
+
             // Solo hacer predicción si tenemos exactamente 84 valores
+            //console.log(data_aux.length)
             if (data_aux.length === 84) {
                 const probabilities = score(data_aux);
-                
+
                 const maxIndex = probabilities.indexOf(Math.max(...probabilities));
                 const confidence = probabilities[maxIndex];
 
                 const predicted_character = classes[maxIndex];
 
                 if (confidence > 0.15) {
-                    sendWS("prediccion", {
-                        accion: predicted_character,
-                        confianza: Number(confidence.toFixed(3)),
-                        timestamp: new Date().toISOString(),
-                    });
+                    if (predicted_character === currentPrediction) {
+                        predictionCount++;
+                    } else {
+                        currentPrediction = predicted_character;
+                        predictionCount = 1;
+                    }
+                    if (predictionCount >= MIN_REPETITIONS) {
+                        if (sentence.length === 0 || sentence[sentence.length - 1] !== predicted_character) {
+                            sentence.push(predicted_character);
+                            if (sentence.length > MAX_SENTENCE_LENGTH) {
+                                sentence.shift();
+                            }
 
+                            if ('speechSynthesis' in window) {
+                                window.speechSynthesis.cancel();
 
-                    console.log(`Predicción actual: ${predicted_character} (${confidence.toFixed(3)})`);
-                }
+                                const utterance = new SpeechSynthesisUtterance(predicted_character);
+                                utterance.lang = 'es-ES';
+                                utterance.rate = 2.0;
+                                utterance.pitch = 1.0;
+                                utterance.volume = 1.0;
+                                window.speechSynthesis.speak(utterance);
+                            } else {
+                                console.warn('TTS no soportado en este navegador');
+                            }
+
+                            sendWS("prediccion", {
+                                accion: predicted_character,
+                                confianza: Number(confidence.toFixed(3))
+                            });
+
+                        }
+
+                        predictionCount = 0;
+                        currentPrediction = null;
+                    }
+
+                    console.clear();
+                    const translation = sentence.join(" ");
+                    console.log(`Oración: ${translation || "vacía"}`);
+                    
+                }  
             }
         } else {
             console.log("No se detectaron manos");
         }
+
     } catch (error) {
         console.error("Error en predicción:", error);
     } finally {

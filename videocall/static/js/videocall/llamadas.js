@@ -42,7 +42,7 @@ pc.ontrack = event => {
 
 // Estado de ICE
 pc.oniceconnectionstatechange = () => {
-  console.log("📡 ICE state:", pc.iceConnectionState);
+  console.log("ICE state:", pc.iceConnectionState);
   if (pc.iceConnectionState === "disconnected" || 
       pc.iceConnectionState === "failed" || 
       pc.iceConnectionState === "closed") {
@@ -114,9 +114,22 @@ ws.onmessage = async (event) => {
   }
 
   if (data.type === 'broadcast_message' && data.message?.type === 'prediccion') {
-    const p = data.message;
-    console.log(`Predicción remota: acción=${p.accion} | confianza=${p.confianza}`);
-    
+      const p = data.message;
+      //console.log(`Predicción remota: acción=${p.accion} | confianza=${p.confianza}`);
+      
+      // TTS - Reproducir la predicción recibida
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(p.accion);
+        utterance.lang = 'es-ES';
+        utterance.rate = 1.6;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.warn('TTS no soportado en este navegador');
+      }
   }
 
 };
