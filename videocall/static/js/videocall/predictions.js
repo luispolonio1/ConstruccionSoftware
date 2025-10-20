@@ -1,9 +1,17 @@
 // Array con las palabras que corresponden a cada índice
 const classes = [
-    "Adios", "Bien", "Como", "ComoEstas", "DeNuevo", "Despacio", "El", "Entiendo",
-    "Gracias", "Hola", "Hoy", "Increible", "Listo", "LoSiento", "Mal", "MasOMenos",
-    "Mio", "No", "Nombre", "Nosotros", "Ok", "PorFavor", "Que", "Si", "TeAmo", "Tu",
-    "Tuyo", "Yo"
+    "Adios", "Amigo", "Amor", "Antes", "Aqui", "Ayuda", "Beber", "Bien", "Caminar",
+    "Casa", "Chica", "Chico", "Cinco", "Comer", "Como", "ComoEstas", "Con", "Cuando",
+    "Cuatro", "Cuidate", "DeNuevo", "Despertar", "Despues", "Dia", "Domingo",
+    "Donde", "Dormir", "Dos", "El", "Enojado", "Entiendo", "Escribir", "Escuchar",
+    "Escuela", "Eso", "Familia", "Gracias", "Gustar", "Hablar", "Hola", "Hoy",
+    "Increible", "Ir", "Jueves", "Leer", "Listo", "Llorar", "LoSiento", "Lunes",
+    "Mal", "Mama", "Manana", "Martes", "Mes", "Miercoles", "Mio", "Nada", "Necesitar",
+    "No", "Noche", "Nombre", "Nosotros", "Nueve", "Ocho", "Ok", "Olvidar", "Papa",
+    "Pensar", "PorFavor", "Porque", "Pregunta", "Que", "Quien", "Sabado", "Saber",
+    "Seis", "Si", "Siete", "Tardes", "TeAmo", "Tiempo", "Tienda", "Trabajar", "Tres",
+    "Triste", "Tu", "Tuyo", "UnGusto", "Uno", "Ver", "Viernes", "Yo", "abrir", "parar",
+    "tener", "venir"
 ];
 
 let sentence = [];
@@ -198,7 +206,7 @@ async function onResults(results) {
 
                 const predicted_character = classes[maxIndex];
 
-                if (confidence > 0.15) {
+                if (confidence > 0.30) {
                     if (predicted_character === currentPrediction) {
                         predictionCount++;
                     } else {
@@ -239,8 +247,8 @@ async function onResults(results) {
                     console.clear();
                     const translation = sentence.join(" ");
                     console.log(`Oración: ${translation || "vacía"}`);
-                    
-                }  
+
+                }
             }
         } else {
             console.log("No se detectaron manos");
