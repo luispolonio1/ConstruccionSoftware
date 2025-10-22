@@ -124,6 +124,12 @@ ws.onmessage = async (event) => {
     window.speechSynthesis.speak(u);
   }
 
+  function hideSubtitles() {
+    document.getElementById("subtitle_remote").innerText = "";
+    document.getElementById("subtitle_local").innerText = "";
+    document.getElementById("subtitle_remote").classList.add("hidden");
+    document.getElementById("subtitle_local").classList.add("hidden");
+  }
 
   if (data.type === 'broadcast_message' && data.message?.type === 'prediccion') {
     const p = data.message;
@@ -131,13 +137,21 @@ ws.onmessage = async (event) => {
 
     // TTS - Reproducir la predicción recibida
     console.log("Predicción recibida:", p.text);
+    document.getElementById("subtitle_remote").innerText = p.text;
+    document.getElementById("subtitle_remote").classList.remove("hidden");
     speak(p.text);
+
+    setTimeout(hideSubtitles, 5000);
   }
 
 
   if (data.kind === "ack") {
     console.log("Traducción:", data.traduccion);
+    document.getElementById("subtitle_local").innerText = data.traduccion;
+    document.getElementById("subtitle_local").classList.remove("hidden");
     speak(data.traduccion);
+
+    setTimeout(hideSubtitles, 5000);
   }
 
 };
