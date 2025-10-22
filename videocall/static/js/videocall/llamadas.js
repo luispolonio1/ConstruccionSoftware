@@ -43,9 +43,9 @@ pc.ontrack = event => {
 // Estado de ICE
 pc.oniceconnectionstatechange = () => {
   console.log("ICE state:", pc.iceConnectionState);
-  if (pc.iceConnectionState === "disconnected" || 
-      pc.iceConnectionState === "failed" || 
-      pc.iceConnectionState === "closed") {
+  if (pc.iceConnectionState === "disconnected" ||
+    pc.iceConnectionState === "failed" ||
+    pc.iceConnectionState === "closed") {
     remoteVideo.srcObject = null;
   }
 };
@@ -78,9 +78,9 @@ ws.onmessage = async (event) => {
   if (data.Mensaje) {
     swal.fire({
       title: 'información',
-      text: data.Mensaje, 
+      text: data.Mensaje,
       icon: 'info',
-      showConfirmButton:false,
+      showConfirmButton: false,
       timer: 3000
     });
 
@@ -89,9 +89,9 @@ ws.onmessage = async (event) => {
   if (data.Informacion) {
     swal.fire({
       title: 'Información',
-      text: data.Informacion, 
+      text: data.Informacion,
       icon: 'info',
-      showConfirmButton:false,
+      showConfirmButton: false,
       timer: 3000
     });
   }
@@ -101,10 +101,10 @@ ws.onmessage = async (event) => {
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
     ws.send(JSON.stringify({ "answer": answer, "from": ws.id }));
-  } 
+  }
   else if (data.answer) {
     await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-  } 
+  }
   else if (data.ice) {
     try {
       await pc.addIceCandidate(new RTCIceCandidate(data.ice));
@@ -113,23 +113,31 @@ ws.onmessage = async (event) => {
     }
   }
 
-  if (data.type === 'broadcast_message' && data.message?.type === 'prediccion') {
-      const p = data.message;
-      //console.log(`Predicción remota: acción=${p.accion} | confianza=${p.confianza}`);
-      
-      // TTS - Reproducir la predicción recibida
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
+  function speak(text) {
+    if (!text || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(String(text));
+    u.lang = "es-ES";
+    u.rate = 1.6;
+    u.pitch = 1.0;
+    u.volume = 1.0;
+    window.speechSynthesis.speak(u);
+  }
 
-        const utterance = new SpeechSynthesisUtterance(p.accion);
-        utterance.lang = 'es-ES';
-        utterance.rate = 1.6;
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
-        window.speechSynthesis.speak(utterance);
-      } else {
-        console.warn('TTS no soportado en este navegador');
-      }
+
+  if (data.type === 'broadcast_message' && data.message?.type === 'prediccion') {
+    const p = data.message;
+    // Predicciones remotas (de otors usuaioros)
+
+    // TTS - Reproducir la predicción recibida
+    console.log("Predicción recibida:", p.text);
+    speak(p.text);
+  }
+
+
+  if (data.kind === "ack") {
+    console.log("Traducción:", data.traduccion);
+    speak(data.traduccion);
   }
 
 };
